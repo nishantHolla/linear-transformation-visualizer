@@ -8,13 +8,17 @@ const SPACE_COLOR = [63, 63, 70];
 const BASIS1_COLOR = [239, 68, 68];
 const BASIS2_COLOR = [34, 197, 94];
 const GRID_COLOR = [3, 7, 18];
+const INITIAL_GRID_COLOR = [3, 7, 18, 80];
+const HANDLE_COLOR = [253, 224, 71];
 
 // Values
 
 let CANVAS_HAS_CHANGED = true;
 let SCALE = 50;
 let BASIS = [null, null];
-
+let INITIAL_BASIS = [null, null];
+let BASIS_HANDLE_ACTIVE = [false, false];
+let MOUSE_TOLERANCE = 0.2;
 
 // P5
 
@@ -22,6 +26,8 @@ function setup() {
   createCanvas(windowWidth + 200, windowHeight + 200, P2D, DOM_CANVAS);
   BASIS[0] = createVector(1, 0);
   BASIS[1] = createVector(0, 1);
+  INITIAL_BASIS[0] = createVector(1, 0);
+  INITIAL_BASIS[1] = createVector(0, 1);
 }
 
 function draw() {
@@ -31,10 +37,13 @@ function draw() {
 
   translate(windowWidth / 2, windowHeight / 2);
   scale(1, -1);
+  cursor(ARROW);
 
   background(SPACE_COLOR);
   drawBasisGrid(BASIS, GRID_COLOR);
+  drawBasisGrid(INITIAL_BASIS, INITIAL_GRID_COLOR);
   drawBasisArrows(BASIS);
+  drawBasisHandles(BASIS);
 
   CANVAS_HAS_CHANGED = false;
 }
@@ -42,6 +51,55 @@ function draw() {
 function windowResized() {
   resizeCanvas(windowWidth + 200, windowHeight + 200);
   CANVAS_HAS_CHANGED = true;
+}
+
+function mouseMoved() {
+  const col = (mouseX - (windowWidth / 2)) / SCALE;
+  const row = ((windowHeight / 2) - mouseY) / SCALE;
+
+  if (abs(col - BASIS[0].x) < MOUSE_TOLERANCE &&
+      abs(row - BASIS[0].y) < MOUSE_TOLERANCE) {
+    BASIS_HANDLE_ACTIVE[0] = true;
+    CANVAS_HAS_CHANGED = true;
+  }
+  else if (BASIS_HANDLE_ACTIVE[0] === true) {
+    BASIS_HANDLE_ACTIVE[0] = false;
+    CANVAS_HAS_CHANGED = true;
+  }
+
+  if (abs(col - BASIS[1].x) < MOUSE_TOLERANCE &&
+      abs(row - BASIS[1].y) < MOUSE_TOLERANCE) {
+    BASIS_HANDLE_ACTIVE[1] = true;
+    CANVAS_HAS_CHANGED = true;
+  }
+  else if (BASIS_HANDLE_ACTIVE[1] === true) {
+    BASIS_HANDLE_ACTIVE[1] = false;
+    CANVAS_HAS_CHANGED = true;
+  }
+}
+
+function mouseDragged() {
+  let col = (mouseX - (windowWidth / 2)) / SCALE;
+  const nearestCol = round(col);
+  let row = ((windowHeight / 2) - mouseY) / SCALE;
+  const nearestRow = round(row);
+
+  if (abs(col - nearestCol) < 0.1) {
+    col = nearestCol;
+  }
+
+  if (abs(row - nearestRow) < 0.1) {
+    row = nearestRow;
+  }
+
+  if (BASIS_HANDLE_ACTIVE[0]) {
+    BASIS[0].set(col, row);
+    CANVAS_HAS_CHANGED = true;
+  }
+  else if (BASIS_HANDLE_ACTIVE[1]) {
+    BASIS[1].set(col, row);
+    CANVAS_HAS_CHANGED = true;
+  }
 }
 
 // Canvas utils
@@ -105,5 +163,19 @@ function drawBasisGrid(basis, color) {
       .mult(SCALE);
 
     line(start.x, start.y, end.x, end.y);
+  }
+}
+
+function drawBasisHandles(basis) {
+  stroke(HANDLE_COLOR);
+  strokeWeight(6);
+
+  if (BASIS_HANDLE_ACTIVE[0]) {
+    point(BASIS[0].x * SCALE, BASIS[0].y * SCALE);
+    cursor(HAND);
+  }
+  else if (BASIS_HANDLE_ACTIVE[1]) {
+    point(BASIS[1].x * SCALE, BASIS[1].y * SCALE);
+    cursor(HAND);
   }
 }
