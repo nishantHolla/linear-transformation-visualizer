@@ -25,7 +25,9 @@ let BASIS_HANDLE_ACTIVE = [false, false];
 let MOUSE_TOLERANCE = 0.2;
 let CURRENT_MODE = "free-movement-mode";
 let DELTA_ROTATION = 1;
+let DELTA_SCALE = 0.01;
 let TARGET_ROTATION = [null, null];
+let TARGET_SCALE = [null, null];
 let STATE = "idle";
 
 // P5
@@ -66,36 +68,64 @@ function draw() {
   drawBasisHandles(BASIS);
 
   if (STATE === "rotating") {
-    console.log(TARGET_ROTATION);
-
-    if (abs(TARGET_ROTATION[0]) < DELTA_ROTATION) {
-      rotateBasis(BASIS[0], rotationMatrix(TARGET_ROTATION[0]))
-      TARGET_ROTATION[0] = 0;
-    }
-
-    if (abs(TARGET_ROTATION[1]) < DELTA_ROTATION) {
-      rotateBasis(BASIS[1], rotationMatrix(TARGET_ROTATION[1]))
-      TARGET_ROTATION[1] = 0;
-    }
-
     if (TARGET_ROTATION[0] === 0 && TARGET_ROTATION[1] === 0) {
       STATE = "scaling";
     }
 
     if (TARGET_ROTATION[0] !== 0) {
-      const direction = abs(TARGET_ROTATION[0]) / TARGET_ROTATION[0];
-      rotateBasis(BASIS[0], rotationMatrix(DELTA_ROTATION * direction));
-      TARGET_ROTATION[0] -= DELTA_ROTATION * direction;
+      if (abs(TARGET_ROTATION[0]) < DELTA_ROTATION) {
+        applyTransformation(BASIS[0], rotationMatrix(TARGET_ROTATION[0]))
+        TARGET_ROTATION[0] = 0;
+      }
+      else {
+        const direction = abs(TARGET_ROTATION[0]) / TARGET_ROTATION[0];
+        applyTransformation(BASIS[0], rotationMatrix(DELTA_ROTATION * direction));
+        TARGET_ROTATION[0] -= DELTA_ROTATION * direction;
+      }
     }
 
     if (TARGET_ROTATION[1] !== 0) {
-      const direction = abs(TARGET_ROTATION[1]) / TARGET_ROTATION[1];
-      rotateBasis(BASIS[1], rotationMatrix(DELTA_ROTATION * direction));
-      TARGET_ROTATION[1] -= DELTA_ROTATION * direction;
+      if (abs(TARGET_ROTATION[1]) < DELTA_ROTATION) {
+        applyTransformation(BASIS[1], rotationMatrix(TARGET_ROTATION[1]))
+        TARGET_ROTATION[1] = 0;
+      }
+      else {
+        const direction = abs(TARGET_ROTATION[1]) / TARGET_ROTATION[1];
+        applyTransformation(BASIS[1], rotationMatrix(DELTA_ROTATION * direction));
+        TARGET_ROTATION[1] -= DELTA_ROTATION * direction;
+      }
     }
   }
   else if (STATE === "scaling") {
-    STATE = "idle"
+    if (TARGET_SCALE[0] === 0 && TARGET_SCALE[1] === 0) {
+      STATE = "idle";
+    }
+
+    if (TARGET_SCALE[0] !== 0) {
+      if (abs(TARGET_SCALE[0]) < DELTA_SCALE) {
+        const direction = abs(TARGET_SCALE[0]) / TARGET_SCALE[0];
+        applyTransformation(BASIS[0], scalingMatrix(1 + TARGET_SCALE[0] / magnitude(BASIS[0]) * direction));
+        TARGET_SCALE[0] = 0;
+      }
+      else {
+        const direction = abs(TARGET_SCALE[0]) / TARGET_SCALE[0];
+        applyTransformation(BASIS[0], scalingMatrix(1 + DELTA_SCALE / magnitude(BASIS[0]) * direction));
+        TARGET_SCALE[0] -= DELTA_SCALE * direction;
+      }
+    }
+
+    if (TARGET_SCALE[1] !== 0) {
+      if (abs(TARGET_SCALE[1]) < DELTA_SCALE) {
+        const direction = abs(TARGET_SCALE[1]) / TARGET_SCALE[1];
+        applyTransformation(BASIS[1], scalingMatrix(1 + TARGET_SCALE[1] / magnitude(BASIS[1]) * direction));
+        TARGET_SCALE[1] = 0;
+      }
+      else {
+        const direction = abs(TARGET_SCALE[1]) / TARGET_SCALE[1];
+        applyTransformation(BASIS[1], scalingMatrix(1 + DELTA_SCALE / magnitude(BASIS[1]) * direction));
+        TARGET_SCALE[1] -= DELTA_SCALE * direction;
+      }
+    }
   }
   else {
     CANVAS_HAS_CHANGED = false;
@@ -167,10 +197,16 @@ function mouseDragged() {
 }
 
 function playTransformation() {
+  BASIS[0].set(1, 0);
+  BASIS[1].set(0, 1);
+
   const transformation = domGetMatrix(DOM_TRANSFROMATION_MATRIX);
 
   TARGET_ROTATION[0] = (atan2(transformation[1][0], transformation[0][0]) - atan2(0, 1)) * RAD_TO_DEG;
   TARGET_ROTATION[1] = (atan2(transformation[1][1], transformation[0][1]) - atan2(1, 0)) * RAD_TO_DEG;
+
+  TARGET_SCALE[0] = sqrt(pow(transformation[1][0], 2) + pow(transformation[0][0], 2)) - 1;
+  TARGET_SCALE[1] = sqrt(pow(transformation[1][1], 2) + pow(transformation[0][1], 2)) - 1;
 
   STATE = "rotating";
   CANVAS_HAS_CHANGED = true;
@@ -321,7 +357,7 @@ function basisToMatrix(basis) {
   return [ [basis[0].x, basis[1].x], [basis[0].y, basis[1].y]];
 }
 
-function rotateBasis(basis, mat) {
+function applyTransformation(basis, mat) {
   const a = mat[0][0];
   const b = mat[0][1];
   const c = mat[1][0];
@@ -340,4 +376,15 @@ function rotationMatrix(degrees) {
     [cos(theta), -sin(theta)],
     [sin(theta), cos(theta)]
   ];
+}
+
+function scalingMatrix(scale) {
+  return [
+    [scale, 0],
+    [0, scale]
+  ]
+}
+
+function magnitude(basis) {
+  return sqrt(basis.x * basis.x + basis.y * basis.y);
 }
