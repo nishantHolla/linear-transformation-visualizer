@@ -2,6 +2,8 @@
 
 const DOM_CANVAS = document.querySelector("canvas");
 const DOM_TRANSFROMATION_MATRIX = document.querySelector(".transformation-matrix");
+const DOM_MODE_BUTTONS = document.querySelectorAll(".header-bottom input")
+const DOM_INSTRUCTION_TEXT = document.querySelector(".instruction-text")
 
 // Colors
 
@@ -20,15 +22,27 @@ let BASIS = [null, null];
 let INITIAL_BASIS = [null, null];
 let BASIS_HANDLE_ACTIVE = [false, false];
 let MOUSE_TOLERANCE = 0.2;
+let CURRENT_MODE = "free-movement-mode"
 
 // P5
 
 function setup() {
+  DOM_MODE_BUTTONS[0].click();
+
   createCanvas(windowWidth + 200, windowHeight + 200, P2D, DOM_CANVAS);
   BASIS[0] = createVector(1, 0);
   BASIS[1] = createVector(0, 1);
   INITIAL_BASIS[0] = createVector(1, 0);
   INITIAL_BASIS[1] = createVector(0, 1);
+
+  DOM_MODE_BUTTONS.forEach(button => {
+    button.addEventListener("change", (e) => {
+      CURRENT_MODE = e.target.value;
+      domChangeMode(e.target.value);
+    })
+  })
+
+  domChangeMode(CURRENT_MODE);
 }
 
 function draw() {
@@ -46,7 +60,6 @@ function draw() {
   drawBasisArrows(BASIS);
   drawBasisHandles(BASIS);
 
-  domSetMatrix(DOM_TRANSFROMATION_MATRIX, basisToMatrix(BASIS), "span");
   CANVAS_HAS_CHANGED = false;
 }
 
@@ -56,6 +69,10 @@ function windowResized() {
 }
 
 function mouseMoved() {
+  if (CURRENT_MODE !== "free-movement-mode") {
+    return;
+  }
+
   const col = (mouseX - (windowWidth / 2)) / SCALE;
   const row = ((windowHeight / 2) - mouseY) / SCALE;
 
@@ -81,6 +98,10 @@ function mouseMoved() {
 }
 
 function mouseDragged() {
+  if (CURRENT_MODE !== "free-movement-mode") {
+    return;
+  }
+
   let col = (mouseX - (windowWidth / 2)) / SCALE;
   const nearestCol = round(col);
   let row = ((windowHeight / 2) - mouseY) / SCALE;
@@ -97,10 +118,12 @@ function mouseDragged() {
   if (BASIS_HANDLE_ACTIVE[0]) {
     BASIS[0].set(col, row);
     CANVAS_HAS_CHANGED = true;
+    domSetMatrix(DOM_TRANSFROMATION_MATRIX, basisToMatrix(BASIS), "span");
   }
   else if (BASIS_HANDLE_ACTIVE[1]) {
     BASIS[1].set(col, row);
     CANVAS_HAS_CHANGED = true;
+    domSetMatrix(DOM_TRANSFROMATION_MATRIX, basisToMatrix(BASIS), "span");
   }
 }
 
@@ -192,6 +215,7 @@ function domSetMatrix(element, matrix, childElementName) {
       let item = document.createElement(childElementName);
       if (childElementName === "input") {
         item.value = matrix[i][j];
+        item.classList.add("matrix-input")
       }
       else {
         item.innerText = matrix[i][j];
@@ -199,6 +223,19 @@ function domSetMatrix(element, matrix, childElementName) {
       element.appendChild(item);
     }
   }
+}
+
+function domChangeMode(mode) {
+  document.querySelector("body").dataset.mode = mode;
+  if (mode === "free-movement-mode") {
+    DOM_INSTRUCTION_TEXT.innerText = "Click and drag the heads of the basis vectors to see the required transformation";
+    domSetMatrix(DOM_TRANSFROMATION_MATRIX, basisToMatrix(BASIS), "span");
+  }
+  else {
+    DOM_INSTRUCTION_TEXT.innerText = "Input required transformation matrix and click play"
+    domSetMatrix(DOM_TRANSFROMATION_MATRIX, basisToMatrix(BASIS), "input");
+  }
+  CANVAS_HAS_CHANGED = true;
 }
 
 // Math utils

@@ -5,13 +5,28 @@
     <link rel="stylesheet" type="text/css" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.2/lib/p5.min.js"></script>
   </head>
-  <body>
+  <body data-mode="free-movement-mode">
+    <header class="container header-container">
+      <div class="header-top">
+        <h1>Linear Transfromation Visualizer</h1>
+      </div>
+      <div class="header-bottom">
+        <div>
+          <input type="radio" name="mode-select" value="free-movement-mode" id="free-movement-mode" checked/>
+          <label for="free-movement-mode">Free movement mode</label>
+          <input type="radio" name="mode-select" value="input-transformation-mode" id="input-transformation-mode" />
+          <label for="input-transformation-mode">Input transformatin mode</label>
+        </div>
+        <span class="instruction-text"></span>
+      </div>
+    </header>
     <div class="container transformation-container">
       <div class="transformation-top">
         <div class="transformation-matrix matrix"></div>
       </div>
       <div class="transformation-bottom">
         <span id="transformation-text">Transformation</span>
+        <button class="transformation-play-button">Play Transformation</button>
       </div>
     </div>
     <canvas></canvas>

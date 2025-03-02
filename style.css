@@ -59,6 +59,24 @@ body {
   border-bottom: 4px solid white;
 }
 
+.header-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 10px;
+
+  display: flex;
+  flex-flow: column;
+  gap: 10px;
+}
+
+.header-bottom {
+  display: flex;
+  flex-flow: column;
+  gap: 10px;
+  font-size: 1.2rem;
+}
+
 .transformation-container {
   position: absolute;
   width: 250px;
@@ -68,7 +86,26 @@ body {
 
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: 85% 15%;
+}
+
+body[data-mode="free-movement-mode"] {
+  .transformation-container {
+    grid-template-rows: 80% 20%;
+  }
+
+  .transformation-play-button {
+    display: none;
+  }
+}
+
+body[data-mode="input-transformation-mode"] {
+  .transformation-container {
+    grid-template-rows: 75% 25%;
+  }
+
+  .transformation-play-button {
+    display: block;
+  }
 }
 
 .transformation-top {
@@ -80,6 +117,17 @@ body {
 .transformation-bottom {
   display: flex;
   flex-flow: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.transformation-play-button {
+  padding: 2px;
+  cursor: pointer;
+}
+
+.transformation-play-button:disabled {
+  cursor: default;
 }
 
 .transformation-matrix {
@@ -90,5 +138,11 @@ body {
 
 #transformation-text {
   font-size: 1.3rem;
+  text-align: center;
+}
+
+.matrix-input {
+  width: 50px;
+  padding: 5px;
   text-align: center;
 }
