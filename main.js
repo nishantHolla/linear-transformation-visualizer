@@ -2,8 +2,9 @@
 
 const DOM_CANVAS = document.querySelector("canvas");
 const DOM_TRANSFROMATION_MATRIX = document.querySelector(".transformation-matrix");
-const DOM_MODE_BUTTONS = document.querySelectorAll(".header-bottom input")
-const DOM_INSTRUCTION_TEXT = document.querySelector(".instruction-text")
+const DOM_MODE_BUTTONS = document.querySelectorAll(".header-bottom input");
+const DOM_INSTRUCTION_TEXT = document.querySelector(".instruction-text");
+const DOM_PLAY_TRANSFORMATION_BUTTON = document.querySelector(".transformation-play-button");
 
 // Colors
 
@@ -22,7 +23,7 @@ let BASIS = [null, null];
 let INITIAL_BASIS = [null, null];
 let BASIS_HANDLE_ACTIVE = [false, false];
 let MOUSE_TOLERANCE = 0.2;
-let CURRENT_MODE = "free-movement-mode"
+let CURRENT_MODE = "free-movement-mode";
 
 // P5
 
@@ -216,6 +217,9 @@ function domSetMatrix(element, matrix, childElementName) {
       if (childElementName === "input") {
         item.value = matrix[i][j];
         item.classList.add("matrix-input")
+        item.addEventListener("input", () => {
+          domValidateInputTransformation();
+        })
       }
       else {
         item.innerText = matrix[i][j];
@@ -226,6 +230,9 @@ function domSetMatrix(element, matrix, childElementName) {
 }
 
 function domChangeMode(mode) {
+  BASIS[0].set(1, 0);
+  BASIS[1].set(0, 1);
+
   document.querySelector("body").dataset.mode = mode;
   if (mode === "free-movement-mode") {
     DOM_INSTRUCTION_TEXT.innerText = "Click and drag the heads of the basis vectors to see the required transformation";
@@ -236,6 +243,19 @@ function domChangeMode(mode) {
     domSetMatrix(DOM_TRANSFROMATION_MATRIX, basisToMatrix(BASIS), "input");
   }
   CANVAS_HAS_CHANGED = true;
+}
+
+function domValidateInputTransformation() {
+  let isInvalid = false;
+
+  const inputs = document.querySelectorAll(".matrix-input");
+  inputs.forEach(input => {
+    if (isNaN(Number(input.value)) || input.value === "") {
+      isInvalid = true;
+    }
+  })
+
+  DOM_PLAY_TRANSFORMATION_BUTTON.disabled = isInvalid;
 }
 
 // Math utils
