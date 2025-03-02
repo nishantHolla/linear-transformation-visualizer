@@ -1,6 +1,7 @@
 // DOM elements
 
 const DOM_CANVAS = document.querySelector("canvas");
+const DOM_TRANSFROMATION_MATRIX = document.querySelector(".transformation-matrix");
 
 // Colors
 
@@ -45,6 +46,7 @@ function draw() {
   drawBasisArrows(BASIS);
   drawBasisHandles(BASIS);
 
+  domSetMatrix(DOM_TRANSFROMATION_MATRIX, basisToMatrix(BASIS), "span");
   CANVAS_HAS_CHANGED = false;
 }
 
@@ -178,4 +180,29 @@ function drawBasisHandles(basis) {
     point(BASIS[1].x * SCALE, BASIS[1].y * SCALE);
     cursor(HAND);
   }
+}
+
+// DOM utils
+
+function domSetMatrix(element, matrix, childElementName) {
+  element.replaceChildren();
+
+  for (let i = 0; i < matrix.length; i++) {
+    for (let j = 0; j < matrix[i].length; j++) {
+      let item = document.createElement(childElementName);
+      if (childElementName === "input") {
+        item.value = matrix[i][j];
+      }
+      else {
+        item.innerText = matrix[i][j];
+      }
+      element.appendChild(item);
+    }
+  }
+}
+
+// Math utils
+
+function basisToMatrix(basis) {
+  return [ [basis[0].x, basis[1].x], [basis[0].y, basis[1].y]];
 }

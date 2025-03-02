@@ -1,6 +1,7 @@
 * {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 html,
@@ -11,4 +12,83 @@ body {
 
 body {
   overflow: hidden;
+  font-family: sans-serif;
+  color: white;
+}
+
+.container {
+  background: #0d0d0dcc;
+  margin: 10px;
+  border-radius: 10px;
+  padding: 5px;
+}
+
+.matrix {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  justify-items: center;
+  align-items: center;
+  gap: 20px;
+
+  border-left: 4px solid white;
+  border-right: 4px solid white;
+  position: relative;
+}
+
+.matrix::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+
+  border-top: 4px solid white;
+  border-bottom: 4px solid white;
+}
+
+.matrix::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+
+  border-top: 4px solid white;
+  border-bottom: 4px solid white;
+}
+
+.transformation-container {
+  position: absolute;
+  width: 250px;
+  height: 250px;
+  right: 0;
+  top: 0;
+
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 85% 15%;
+}
+
+.transformation-top {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.transformation-bottom {
+  display: flex;
+  flex-flow: column;
+}
+
+.transformation-matrix {
+  font-size: 1.8rem;
+  width: 80%;
+  height: 80%;
+}
+
+#transformation-text {
+  font-size: 1.3rem;
+  text-align: center;
 }
