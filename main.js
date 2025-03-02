@@ -24,11 +24,15 @@ let INITIAL_BASIS = [null, null];
 let BASIS_HANDLE_ACTIVE = [false, false];
 let MOUSE_TOLERANCE = 0.2;
 let CURRENT_MODE = "free-movement-mode";
+let DELTA_ROTATION = 1;
+let TARGET_ROTATION = [null, null];
+let STATE = "idle";
 
 // P5
 
 function setup() {
   DOM_MODE_BUTTONS[0].click();
+  DOM_PLAY_TRANSFORMATION_BUTTON.addEventListener("click", playTransformation);
 
   createCanvas(windowWidth + 200, windowHeight + 200, P2D, DOM_CANVAS);
   BASIS[0] = createVector(1, 0);
@@ -61,7 +65,41 @@ function draw() {
   drawBasisArrows(BASIS);
   drawBasisHandles(BASIS);
 
-  CANVAS_HAS_CHANGED = false;
+  if (STATE === "rotating") {
+    console.log(TARGET_ROTATION);
+
+    if (abs(TARGET_ROTATION[0]) < DELTA_ROTATION) {
+      rotateBasis(BASIS[0], rotationMatrix(TARGET_ROTATION[0]))
+      TARGET_ROTATION[0] = 0;
+    }
+
+    if (abs(TARGET_ROTATION[1]) < DELTA_ROTATION) {
+      rotateBasis(BASIS[1], rotationMatrix(TARGET_ROTATION[1]))
+      TARGET_ROTATION[1] = 0;
+    }
+
+    if (TARGET_ROTATION[0] === 0 && TARGET_ROTATION[1] === 0) {
+      STATE = "scaling";
+    }
+
+    if (TARGET_ROTATION[0] !== 0) {
+      const direction = abs(TARGET_ROTATION[0]) / TARGET_ROTATION[0];
+      rotateBasis(BASIS[0], rotationMatrix(DELTA_ROTATION * direction));
+      TARGET_ROTATION[0] -= DELTA_ROTATION * direction;
+    }
+
+    if (TARGET_ROTATION[1] !== 0) {
+      const direction = abs(TARGET_ROTATION[1]) / TARGET_ROTATION[1];
+      rotateBasis(BASIS[1], rotationMatrix(DELTA_ROTATION * direction));
+      TARGET_ROTATION[1] -= DELTA_ROTATION * direction;
+    }
+  }
+  else if (STATE === "scaling") {
+    STATE = "idle"
+  }
+  else {
+    CANVAS_HAS_CHANGED = false;
+  }
 }
 
 function windowResized() {
@@ -126,6 +164,16 @@ function mouseDragged() {
     CANVAS_HAS_CHANGED = true;
     domSetMatrix(DOM_TRANSFROMATION_MATRIX, basisToMatrix(BASIS), "span");
   }
+}
+
+function playTransformation() {
+  const transformation = domGetMatrix(DOM_TRANSFROMATION_MATRIX);
+
+  TARGET_ROTATION[0] = (atan2(transformation[1][0], transformation[0][0]) - atan2(0, 1)) * RAD_TO_DEG;
+  TARGET_ROTATION[1] = (atan2(transformation[1][1], transformation[0][1]) - atan2(1, 0)) * RAD_TO_DEG;
+
+  STATE = "rotating";
+  CANVAS_HAS_CHANGED = true;
 }
 
 // Canvas utils
@@ -208,6 +256,15 @@ function drawBasisHandles(basis) {
 
 // DOM utils
 
+function domGetMatrix(element) {
+  const matrix = [
+    [Number(element.children[0].value), Number(element.children[1].value)],
+    [Number(element.children[2].value), Number(element.children[3].value)],
+  ];
+
+  return matrix;
+}
+
 function domSetMatrix(element, matrix, childElementName) {
   element.replaceChildren();
 
@@ -262,4 +319,25 @@ function domValidateInputTransformation() {
 
 function basisToMatrix(basis) {
   return [ [basis[0].x, basis[1].x], [basis[0].y, basis[1].y]];
+}
+
+function rotateBasis(basis, mat) {
+  const a = mat[0][0];
+  const b = mat[0][1];
+  const c = mat[1][0];
+  const d = mat[1][1];
+
+  let e = basis.x;
+  let f = basis.y;
+
+  basis.set(a*e + b*f, c*e + d*f);
+  return basis;
+}
+
+function rotationMatrix(degrees) {
+  let theta = radians(degrees);
+  return [
+    [cos(theta), -sin(theta)],
+    [sin(theta), cos(theta)]
+  ];
 }
